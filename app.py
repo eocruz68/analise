@@ -41,7 +41,7 @@ st.markdown("""
 st.markdown('<p class="titulo-vibrante">🚥 ANALISES BLAZE DOUBLE</p>', unsafe_allow_html=True)
 
 # --- FUNÇÕES DE SUPORTE ---
-ARQUIVO_LOG = "historico_resultados.csv"
+#ARQUIVO_LOG = "historico_resultados.csv"
 
 def fetch_data():
     try:
