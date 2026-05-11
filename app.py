@@ -41,8 +41,11 @@ st.markdown("""
 st.markdown('<p class="titulo-vibrante">🚥 ANALISES BLAZE DOUBLE</p>', unsafe_allow_html=True)
 
 # --- FUNÇÕES DE SUPORTE ---
-#ARQUIVO_LOG = "historico_resultados.csv"
-
+ARQUIVO_LOG = "historico_resultados.csv"
+if not os.path.exists(ARQUIVO_LOG):
+    df_init = pd.DataFrame(columns=['id', 'color', 'roll', 'created_at'])
+    df_init.to_csv(ARQUIVO_LOG, index=False)
+    
 def fetch_data():
     try:
         url = "https://blaze.bet.br/api/singleplayer-originals/originals/roulette_games/recent/1"
