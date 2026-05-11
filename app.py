@@ -9,6 +9,9 @@ from datetime import datetime
 from PIL import Image
 import io
 
+if "historico" not in st.session_state:
+    st.session_state.historico = [] 
+    
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(page_title="Blaze Double Pro", layout="wide")
 
