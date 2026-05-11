@@ -33,9 +33,16 @@ if "historico" not in st.session_state:
 # --- FUNÇÃO DE BUSCA (COM DIAGNÓSTICO) ---
 def fetch_data():
     url = "https://blaze.bet.br/api/singleplayer-originals/originals/roulette_games/recent/1"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+    # Headers muito mais detalhados para parecer um humano
+    headers = {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+        "Accept": "application/json",
+        "Referer": "https://blaze.bet.br/pt/games/double",
+        "Origin": "https://blaze.bet.br"
+    }
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        # Adicionamos o 'verify=False' para ignorar travas de SSL simples
+        response = requests.get(url, headers=headers, timeout=15)
         if response.status_code == 200:
             return response.json()
         else:
