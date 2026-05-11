@@ -9,11 +9,11 @@ from datetime import datetime
 from PIL import Image
 import io
 
+# --- CONFIGURAÇÃO DA PÁGINA (Deve ser o primeiro comando Streamlit) ---
+st.set_page_config(page_title="Blaze Double Pro", layout="wide")
+
 if "historico" not in st.session_state:
     st.session_state.historico = [] 
-    
-# --- CONFIGURAÇÃO DA PÁGINA ---
-st.set_page_config(page_title="Blaze Double Pro", layout="wide")
 
 # --- ESTILIZAÇÃO ---
 st.markdown("""
@@ -46,9 +46,17 @@ ARQUIVO_LOG = "historico_resultados.csv"
 def fetch_data():
     try:
         url = "https://blaze.bet.br/api/singleplayer-originals/originals/roulette_games/recent/1"
-        headers = {"User-Agent": "Mozilla/5.0"}
+        # User-Agent mais completo para evitar bloqueios da API
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
         response = requests.get(url, headers=headers, timeout=5)
-        return response.json()
+        
+        if response.status_code == 200:
+            dados = response.json()
+            # Garante que o retorno é de fato uma lista válida
+            return dados if isinstance(dados, list) else []
+        return []
     except:
         return []
 
@@ -65,22 +73,26 @@ def get_image_base64(roll_value):
         return None
     return None
 
-if 'historico' not in st.session_state:
-    st.session_state.historico = []
-
 # --- FRAGMENTO PARA ATUALIZAÇÃO SEM PISCAR ---
-@st.fragment(run_every=5) # Atualiza a cada 5 segundos apenas este bloco
+@st.fragment(run_every=5) 
 def mostrar_resultados():
     novos_dados = fetch_data()
     houve_novo_branco = False
     
-    # Processa novos dados
-    ids_locais = {j.get('id') for j in st.session_state.historico}
+    # 1. Filtra IDs locais ignorando entradas inválidas ou None
+    ids_locais = {
+        j.get('id') for j in st.session_state.historico 
+        if isinstance(j, dict) and j.get('id') is not None
+    }
+    
+    # 2. Processa novos dados de forma segura
     for jogo in reversed(novos_dados):
-        if jogo['id'] not in ids_locais:
-            st.session_state.historico.append(jogo)
-            if jogo['color'] == 0: houve_novo_branco = True
-            
+        # Garante que 'jogo' é um dicionário e possui a chave 'id'
+        if isinstance(jogo, dict) and 'id' in jogo and jogo['id'] is not None:
+            if jogo['id'] not in ids_locais:
+                st.session_state.historico.append(jogo)
+                if jogo.get('color') == 0: 
+                    houve_novo_branco = True
 
     # Renderiza
     if st.session_state.historico:
@@ -91,9 +103,10 @@ def mostrar_resultados():
         for row in reversed(rows):
             cols = st.columns(num_cols)
             for i, jogo in enumerate(row):
-                if i < num_cols:
-                    roll_value = jogo['roll']
-                    cor_id = jogo['color']
+                # Proteção extra caso o item na linha não seja um dicionário válido
+                if i < num_cols and isinstance(jogo, dict) and 'roll' in jogo:
+                    roll_value = jogo.get('roll', '?')
+                    cor_id = jogo.get('color', 1)
                     
                     try:
                         utc_time = datetime.strptime(jogo['created_at'], "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=pytz.utc)
